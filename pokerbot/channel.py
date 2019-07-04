@@ -79,6 +79,15 @@ class Channel:
             self.database = Database("Tables", self.server_id)
         self.database.set_value("channelId", self.channel_id, {"deck": deck})
 
+    def get_database(self):
+        """
+        Returns the database represented by the table
+        :return: The database represented by the table
+        """
+        if self.database is None:
+            self.database = Database("Tables", self.server_id)
+        return self.database
+
     def add_player(self, player_id, position, hand):
         """
         Adds a player to the table with default values

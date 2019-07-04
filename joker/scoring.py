@@ -1,8 +1,12 @@
-<<<<<<< Updated upstream
 class Score:
     def __init__(self, hand, table):
         self.hand = hand
         self.table = table
+
+        self.value = self.__get_score()
+
+    def get(self):
+        return self.value
 
     def __flush(self):
         """
@@ -209,5 +213,4 @@ class Score:
             1: 'HIGH CARD'
         }
         return scores[int(score)]
-=======
->>>>>>> Stashed changes
+

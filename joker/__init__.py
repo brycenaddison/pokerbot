@@ -9,3 +9,4 @@ __license__ = 'MIT License'
 __copyright__ = 'Copyright 2019 Brycen Addison'
 
 from joker.deck import new_deck, FULL_DECK, draw
+from joker.scoring import Score

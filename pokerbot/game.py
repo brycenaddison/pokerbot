@@ -131,10 +131,11 @@ async def next_turn(ctx):
 async def end_round(ctx):
     table = Channel(ctx)
     highest_score = 0
+    winning_position = [-1]
+
     for player in table.get("players"):
-        player_id = player["userId"]
         in_pot = player["inPot"]
-        member = Member(ctx, player_id)
+        member = Member(ctx, player["userId"])
         # Adds 1 to total hands played
         member.set("handsPlayed", member.get("handsPlayed") + 1)
 
@@ -142,47 +143,47 @@ async def end_round(ctx):
         member.set("totalLosses", member.get("totalLosses") + in_pot)
 
         # Detracts amount bet from users hand
-        member.set("balance", member.get("balance") - in_pot))
+        member.set("balance", member.get("balance") - in_pot)
 
         # Finds the position[s] with the winning hand
         hand = player["hand"]
         position = player["position"]
-        score = scoring.handEval(hand, table.functions.get(ctx, "cards"))
-        if score > highestScore:
-            highestScore = score
-            winningPosition = [position]
-        elif score == highestScore:
-            winningPosition.append[position]
+        score = joker.Score(hand, table.get("cards")).get()
 
-        # Splits up pot among winners
-        winningAmount = table.functions.get(ctx, "pot") / len(winningPosition)
+        if score > highest_score:
+            highest_score = score
+            winning_position = [position]
+        elif score == highest_score:
+            winning_position.append[position]
 
-        for player in table.functions.get(ctx, "players"):
-            if player["position"] == position:
-                # Adds winnings to balance
-                member.functions.set(ctx, playerid, "balance",
-                                     (member.functions.get(ctx, playerid, "balance") + winningAmount))
-                # Adds winnings to total winnings
-                member.functions.set(ctx, playerid, "totalWinnings",
-                                     (member.functions.get(ctx, playerid, "totalWinnings") + winningAmount))
-                # Adds 1 to hands won
-                member.functions.set(ctx, playerid, "handsWon", (member.functions.get(ctx, playerid, "handsWon") + 1))
+    # Splits up pot among winners
+    winning_amount = table.get("pot") / len(winning_position)
+
+    for player in table.get("players"):
+        if player["position"] in winning_position:
+            member = Member(ctx, player["userId"])
+            # Adds winnings to balance
+            member.set("balance", member.get("balance") + winning_amount)
+            # Adds winnings to total winnings
+            member.set("totalWinnings", member.get("totalWinnings") + winning_amount)
+            # Adds 1 to hands won
+            member.set("handsWon", member.get("handsWon") + 1)
 
     # Removes players in leaving queue from table
-    for playerid in table.functions.get(ctx, "leavingLine"):
+    for player_id in table.get("leavingLine"):
 
-        if Database("Tables", ctx.message.guild.id).is_there("players", {"userId": playerid}):
-            table.functions.remove(ctx, "players", {"userId": playerid})
-            table.functions.remove(ctx, "leavingLine", playerid)
-            table.update(ctx, f"{ctx.message.guild.get_member(playerid).mention} has left the table.")
+        if table.get_database().is_there("players", {"userId": player_id}):
+            table.remove("players", {"userId": player_id})
+            table.remove("leavingLine", player_id)
+            await table.update(f"{ctx.message.guild.get_member(player_id).mention} has left the table.")
 
     # Set waiting for players to true if less than 2 players
-    if len(table.functions.get(ctx, "players")) < 2:
-        table.functions.set(ctx, {
+    if len(table.get("players")) < 2:
+        table.set({
             "waitingForPlayers": True
         })
 
     # Deletes table if waiting to delete
-    if table.functions.get(ctx, "waitingToClose"):
-        table.update(ctx, messages.closetable.closed)
-        Database("Tables", ctx.message.guild.id).delete_entry("channelId", ctx.message.channel.id)
+    if table.get("waitingToClose"):
+        await table.update(messages.closetable.closed)
+        table.get_database().delete_entry("channelId", ctx.message.channel.id)
