@@ -1,4 +1,11 @@
+#Detectors for different matches for use in handEval
 def flush(hand, table):  # returns the flush suit if there is a flush and false if not
+'''
+Checks for a flush, returning either the suit or false
+:param hand: The 2 cards in a player's hand
+:param table: The 5 cards on the poker table
+:param suits: A list of all 7 cards (hand + table), only displaying their suits
+'''
     suits = [x[0] for x in
              (hand + table)]  # list comprehension- just turns everything into their suits (the first character)
     if suits.count('♦') >= 5:
@@ -12,10 +19,11 @@ def flush(hand, table):  # returns the flush suit if there is a flush and false 
     else:
         return False
 
-
 def runs(cards, pos):  # specifically for use in straight()
+'''
+Checks if a list of cards (:param cards:), starting from a certain position
+'''
     return [(x - cards[pos]) for x in cards]  # pos stands for position btw
-
 
 def straight(cards):  # determines if there is a straight, and if so, what its high card is
     cards = list(set(cards))  # removes duplicates and puts in order
@@ -38,7 +46,6 @@ def straight(cards):  # determines if there is a straight, and if so, what its h
     else:
         return False
 
-
 def fourCheck(
         cards):  # all these somethingcheck functions check for their respective match and return either false or part of thne number described in 132
     four = [x for x in cards if cards.count(x) == 4]
@@ -46,7 +53,6 @@ def fourCheck(
         return four[-1]
     else:
         return False
-
 
 def houseCheck(cards):
     three = [x for x in cards if cards.count(x) == 3]  # straightforward
@@ -61,14 +67,12 @@ def houseCheck(cards):
     else:
         return False
 
-
 def threeCheck(cards):
     three = [x for x in cards if cards.count(x) == 3]
     if len(three) != 0:
         return three[-1]
     else:
         return False
-
 
 def twoPairCheck(cards):
     two = [x for x in cards if cards.count(x) == 2]
@@ -80,14 +84,12 @@ def twoPairCheck(cards):
     else:
         return False
 
-
 def pairCheck(cards):
     two = [x for x in cards if cards.count(x) == 2]
     if len(two) != 0:
         return two[-1]
     else:
         return 0
-
 
 def highCard(cards, hand, table, rank):
     hand = sorted(
@@ -148,9 +150,11 @@ def highCard(cards, hand, table, rank):
     if rank == 'none':  # stuff where highcard doesnt exist or matter if its in the match: straight flush cant be the same rank by nature of flush unless its all on the table which is just normal high card - high card obv - 4 of a kind same reasons as flush -
         return hand[-1] + hand[0] / 100
 
+'''
+The actual code that scores hands.
+'''
 
-def handEval(hand,
-             table):  # Finally the actual function that calculates the hand score- score format is: a.bcdefghi where a represents what match it is (straight flush through high card from 9 to 1, 9.14 specifically being a royal flush) bc is the highest card of the match (highest card of the straight flush, straight, or flush, what you have 4 of in four of a kind, the card for the triple in the full house, etc. pretty straightforwards i hope also in the format of like 10 or 04) now de in the specific case of house and two pair is the card for the secondary match (the pair in full house and the second(smaller) pair in two pair) in every other case it is the highest card in your hand that has not been used already (unless it is specifically denoted as having rank 'none') fg is the same, just secondary high card (or first if its house or two pair) hi is just house or two pair's version of fg
+def handEval(hand, table):  # Finally the actual function that calculates the hand score- score format is: a.bcdefghi where a represents what match it is (straight flush through high card from 9 to 1, 9.14 specifically being a royal flush) bc is the highest card of the match (highest card of the straight flush, straight, or flush, what you have 4 of in four of a kind, the card for the triple in the full house, etc. pretty straightforwards i hope also in the format of like 10 or 04) now de in the specific case of house and two pair is the card for the secondary match (the pair in full house and the second(smaller) pair in two pair) in every other case it is the highest card in your hand that has not been used already (unless it is specifically denoted as having rank 'none') fg is the same, just secondary high card (or first if its house or two pair) hi is just house or two pair's version of fg
     cards = sorted(
         [14 if x[-1] == 'e' else 13 if x[-1] == 'g' else 12 if x[-1] == 'n' else 11 if x[-1] == 'k' else int(x[1:]) for
          x in (
@@ -183,7 +187,6 @@ def handEval(hand,
         return 2 + pairCheck(cards) / 100 + highCard(cards, hand, table, 'pair') / 10000
     else:
         return 1 + highCard(cards, hand, table, 'none') / 100
-
 
 def translate(score):  # Gives kind of match based on score
     if score >= 9.14:
