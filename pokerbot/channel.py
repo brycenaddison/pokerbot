@@ -20,13 +20,16 @@ class Channel:
         else:
             raise TypeError("Improper number of arguments passed. Pass one context object or the server id and the "
                             "channel id in that order.")
+        self.database = None
 
     def set(self, data):
         """
         Sets a value for the channel
         :param data: The dict object including the key to be set and the value to set it to
         """
-        Database("Tables", self.server_id).set_value("channelId", self.channel_id, data)
+        if self.database is None:
+            self.database = Database("Tables", self.server_id)
+        self.database.set_value("channelId", self.channel_id, data)
 
     def get(self, key):
         """
@@ -34,7 +37,9 @@ class Channel:
         :param key: The key of the object to be returned
         :return: The object represented by the key
         """
-        return Database("Tables", self.server_id).get_value("channelId", self.channel_id, key)
+        if self.database is None:
+            self.database = Database("Tables", self.server_id)
+        return self.database.get_value("channelId", self.channel_id, key)
 
     def add(self, key, value):
         """
@@ -42,7 +47,9 @@ class Channel:
         :param key: The key of the entry
         :param value: The value of the entry
         """
-        Database("Tables", self.server_id).add_value("channelId", self.channel_id, key, value)
+        if self.database is None:
+            self.database = Database("Tables", self.server_id)
+        self.database.add_value("channelId", self.channel_id, key, value)
 
     def remove(self, key, value):
         """
@@ -50,21 +57,27 @@ class Channel:
         :param key: The query key
         :param value: The query value
         """
-        Database("Tables", self.server_id).remove_value("channelId", self.channel_id, key, value)
+        if self.database is None:
+            self.database = Database("Tables", self.server_id)
+        self.database.remove_value("channelId", self.channel_id, key, value)
 
     def get_deck(self):
         """
         Returns the current deck order for the table
         :return: The current deck order for the table
         """
-        return Database("Tables", self.server_id).get_value("channelId", self.channel_id, "deck")
+        if self.database is None:
+            self.database = Database("Tables", self.server_id)
+        return self.database.get_value("channelId", self.channel_id, "deck")
 
     def set_deck(self, deck):
         """
         Sets the deck for the table
         :param deck: The deck to set to the table
         """
-        Database("Tables", self.server_id).set_value("channelId", self.channel_id, {"deck": deck})
+        if self.database is None:
+            self.database = Database("Tables", self.server_id)
+        self.database.set_value("channelId", self.channel_id, {"deck": deck})
 
     def add_player(self, player_id, position, hand):
         """
@@ -88,7 +101,9 @@ class Channel:
         Returns whether this channel is a table
         :return: A boolean value representing whether the channel is a table
         """
-        if Database("Tables", self.server_id).is_there("channelId", self.channel_id):
+        if self.database is None:
+            self.database = Database("Tables", self.server_id)
+        if self.database.is_there("channelId", self.channel_id):
             return True
         else:
             return False
@@ -127,9 +142,11 @@ class Channel:
         Adds a player to the waiting line, subsequently checks if enough players are in the waiting line to start game
         :param player_id: The id of the player to add to the waiting line, by default is the one who sent the message
         """
+        if self.database is None:
+            self.database = Database("Tables", self.server_id)
         if player_id is None:
             player_id = self.ctx.message.author.id
-        Database("Tables", self.server_id).add_value("channelId", self.channel_id, "waitingLine", player_id)
+        self.database.add_value("channelId", self.channel_id, "waitingLine", player_id)
         await self.check()
 
     async def add_to_leaving_line(self, player_id=None):
@@ -137,9 +154,11 @@ class Channel:
         Adds a player to the leaving line, subsequently sends a message if more players are needed
         :param player_id: The id of the player to add to the leaving line, by default is the one who sent the message
         """
+        if self.database is None:
+            self.database = Database("Tables", self.server_id)
         if player_id is None:
             player_id = self.ctx.message.author.id
-        Database("Tables", self.server_id).add_value("channelId", self.channel_id, "leavingLine", player_id)
+        self.database.add_value("channelId", self.channel_id, "leavingLine", player_id)
         await self.players_left()
 
     async def remove_from_waiting_line(self, player_id=None):
@@ -148,9 +167,11 @@ class Channel:
         :param player_id: The id of the player to remove from the waiting line, by default is the one who sent the
                           message
         """
+        if self.database is None:
+            self.database = Database("Tables", self.server_id)
         if player_id is None:
             player_id = self.ctx.message.author.id
-        Database("Tables", self.server_id).remove_value("channelId", self.channel_id, "waitingLine", player_id)
+        self.database.remove_value("channelId", self.channel_id, "waitingLine", player_id)
         await self.players_left()
 
     async def remove_from_leaving_line(self, player_id=None):
@@ -159,9 +180,11 @@ class Channel:
         :param player_id: The id of the player to remove from the leaving line, by default is the one who sent the
                           message
         """
+        if self.database is None:
+            self.database = Database("Tables", self.server_id)
         if player_id is None:
             player_id = self.ctx.message.author.id
-        Database("Tables", self.server_id).remove_value("channelId", self.channel_id, "leavingLine", player_id)
+        self.database.remove_value("channelId", self.channel_id, "leavingLine", player_id)
         await self.players_left()
 
 

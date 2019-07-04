@@ -15,6 +15,8 @@ class Player:
         self.server_id = self.ctx.message.guild.id
         self.player_id = self.ctx.message.author.id
         self.channel_id = self.ctx.message.channel.id
+        self.table = Channel(self.ctx)
+        self.database = None
 
     def get_balance(self, player_id=None):
         """
@@ -22,9 +24,11 @@ class Player:
         :param player_id: The owner of the balance to return
         :return: The balance of the given player
         """
+        if self.database is None:
+            self.database = Database("Members", self.server_id)
         if player_id is None:
             player_id = self.player_id
-        return Database("Members", self.server_id).get_value("userId", player_id, "balance")
+        return self.database.get_value("userId", player_id, "balance")
 
     def set_balance(self, balance, player_id=None):
         """
@@ -32,9 +36,11 @@ class Player:
         :param balance: The number to set the player's balance to
         :param player_id: The target player for the balance change
         """
+        if self.database is None:
+            self.database = Database("Members", self.server_id)
         if player_id is None:
             player_id = self.player_id
-        Database("Members", self.server_id).set_value("userId", player_id, {"balance": balance})
+        self.database.set_value("userId", player_id, {"balance": balance})
 
     async def dm(self, message, player_id=None):
         """
@@ -60,7 +66,7 @@ class Player:
         """
         if player_id is None:
             player_id = self.player_id
-        for player in Database("Tables", self.server_id).get_value("channelId", self.channel_id, "players"):
+        for player in self.table.get("players"):
             if player["userId"] == player_id:
                 return True
         return False
@@ -74,7 +80,7 @@ class Player:
         """
         if player_id is None:
             player_id = self.player_id
-        for pid in Database("Tables", self.server_id).get_value("channelId", self.channel_id, "waitingLine"):
+        for pid in self.table.get("waitingLine"):
             if pid == player_id:
                 return True
         return False
@@ -88,7 +94,7 @@ class Player:
         """
         if player_id is None:
             player_id = self.player_id
-        for pid in Database("Tables", self.server_id).get_value("channelId", self.channel_id, "leavingLine"):
+        for pid in self.table.get("leavingLine"):
             if pid == player_id:
                 return True
         return False
@@ -110,15 +116,13 @@ class Player:
             player_id=player_id
         ):
             Member(self.ctx, player_id).new()
-            table = Channel(self.ctx)
-            await table.update(messages.player.join(self.ctx))
-            await table.add_to_waiting_line(player_id=player_id)
+            await self.table.update(messages.player.join(self.ctx))
+            await self.table.add_to_waiting_line(player_id=player_id)
 
         # removes player from leaving line if they are in leaving line
         elif self.is_in_leaving_line(player_id=player_id) and self.is_playing(player_id=player_id):
-            table = Channel(self.ctx)
-            await table.update(messages.player.cancelLeave(self.ctx))
-            await table.remove_from_leaving_line(player_id=player_id)
+            await self.table.update(messages.player.cancelLeave(self.ctx))
+            await self.table.remove_from_leaving_line(player_id=player_id)
 
     async def leave(self, player_id=None):
         """
@@ -130,14 +134,12 @@ class Player:
 
         # removes player from waiting line if they are in it
         if self.is_in_waiting_line(player_id=player_id):
-            table = Channel(self.ctx)
-            await table.update(messages.player.leave2(self.ctx))
-            await table.remove_from_waiting_line(player_id=player_id)
+            await self.table.update(messages.player.leave2(self.ctx))
+            await self.table.remove_from_waiting_line(player_id=player_id)
 
         # adds player to leaving line if they aren't in leaving line and are in game
         elif not self.is_in_leaving_line(player_id=player_id) and self.is_playing(player_id=player_id):
-            table = Channel(self.ctx)
-            await table.update(messages.player.leave(self.ctx))
-            await table.add_to_leaving_line(player_id=player_id)
+            await self.table.update(messages.player.leave(self.ctx))
+            await self.table.add_to_leaving_line(player_id=player_id)
 
 

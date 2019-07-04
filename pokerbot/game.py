@@ -1,10 +1,8 @@
 import joker
-from database import Database
 from pokerbot import messages
 from pokerbot.member import Member
 from pokerbot.channel import Channel
 from pokerbot.player import Player
-
 
 
 async def start_round(ctx):
@@ -23,6 +21,8 @@ async def start_round(ctx):
     for player in table.get("players"):
         table.remove("players", player)
 
+        player_id = player["userId"]
+
         hand = []
 
         card1, deck = joker.draw(table.get_deck())
@@ -31,37 +31,38 @@ async def start_round(ctx):
         hand.append(card1)
         hand.append(card2)
 
-        table.functions.refresh(ctx, playerid, position, hand)
-        table.functions.set(ctx, {"pot": table.functions.get(ctx, "pot") + ante})
+        table.add_player(player_id, position, hand)
         position = position + 1
 
-    for playerid in table.functions.get(ctx, "waitingLine"):
+    for player_id in table.get("waitingLine"):
         hand = []
 
-        card1, Deck = deck.draw(table.functions.getDeck(ctx))
-        card2, Deck = deck.draw(Deck)
-        table.functions.setDeck(ctx, Deck)
+        card1, deck = joker.draw(table.get_deck())
+        card2, deck = joker.draw(deck)
+        table.set_deck(deck)
         hand.append(card1)
         hand.append(card2)
 
-        table.functions.refresh(ctx, playerid, position, hand)
+        table.add_player(player_id, position, hand)
 
         position = position + 1
 
-        table.functions.remove(ctx, "waitingLine", playerid)
+        table.remove("waitingLine", player_id)
 
-    table.functions.set(ctx, {
+    table.set({
         "positionTurn": -1,
     })
 
-    await table.update(ctx, messages.game.newhand)
+    await table.update(messages.game.newhand)
 
-    await nextTurn(ctx)
+    await next_turn(ctx)
 
 
-async def nextTurn(ctx):
+async def next_turn(ctx):
+    table = Channel(ctx)
+
     # Grabs list of players
-    players = table.functions.get(ctx, "players")
+    players = table.get("players")
 
     # Checks if round needs to be advanced
     '''advanceRound = True
@@ -127,20 +128,21 @@ async def nextTurn(ctx):
     table.functions.set(ctx, {"positionTurn": positionTurn})
 
 
-async def endRound(ctx):
-    highestScore = 0
-    for player in table.functions.get(ctx, "players"):
-        playerid = player["userId"]
-        inPot = player["inPot"]
-
+async def end_round(ctx):
+    table = Channel(ctx)
+    highest_score = 0
+    for player in table.get("players"):
+        player_id = player["userId"]
+        in_pot = player["inPot"]
+        member = Member(ctx, player_id)
         # Adds 1 to total hands played
-        member.functions.set(ctx, playerid, "handsPlayed", (member.functions.get(ctx, playerid, "handsPlayed") + 1))
+        member.set("handsPlayed", member.get("handsPlayed") + 1)
 
         # Adds amount in pot to total losses
-        member.functions.set(ctx, playerid, "totalLosses", (member.functions.get(ctx, playerid, "totalLosses") + inPot))
+        member.set("totalLosses", member.get("totalLosses") + in_pot)
 
         # Detracts amount bet from users hand
-        member.functions.set(ctx, playerid, "balance", (member.functions.get(ctx, playerid, "balance") - inPot))
+        member.set("balance", member.get("balance") - in_pot))
 
         # Finds the position[s] with the winning hand
         hand = player["hand"]

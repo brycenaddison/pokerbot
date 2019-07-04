@@ -13,12 +13,17 @@ class Member:
         self.player_id = player_id
         self.client = ctx.bot
         self.ctx = ctx
+        self.database = None
 
     def set(self, key, value):
-        Database("Members", self.server_id).set_value("userId", self.player_id, {key: value})
+        if self.database is None:
+            self.database = Database("Members", self.server_id)
+        self.database.set_value("userId", self.player_id, {key: value})
 
     def get(self, key):
-        return Database("Members", self.server_id).get_value("userId", self.player_id, key)
+        if self.database is None:
+            self.database = Database("Members", self.server_id)
+        return self.database.get_value("userId", self.player_id, key)
 
     def new(self):
         """
