@@ -1,4 +1,4 @@
-from pokerbot.database import Database
+from database import Database
 from pokerbot import game
 
 
@@ -118,7 +118,7 @@ class Channel:
         """
         if self.get("waitingForPlayers") and len(self.get("waitingLine")) >= 2:
             await self.update("2 players have joined the table! Starting a game...")
-            await game.startRound(self.ctx)
+            await game.start_round(self.ctx)
         else:
             await self.players_left()
 
