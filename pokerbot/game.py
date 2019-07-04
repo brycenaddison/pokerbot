@@ -154,7 +154,7 @@ async def end_round(ctx):
             highest_score = score
             winning_position = [position]
         elif score == highest_score:
-            winning_position.append[position]
+            winning_position.append(position)
 
     # Splits up pot among winners
     winning_amount = table.get("pot") / len(winning_position)
