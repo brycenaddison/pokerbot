@@ -1,5 +1,5 @@
 from pokerbot import messages
-from pokerbot.database import Database
+from database import Database
 from pokerbot.channel import Channel
 import pymongo
 import sys

@@ -1,5 +1,5 @@
 from discord.ext import commands
-from pokerbot.log import log
+from log import log
 from pokerbot.channel import Channel
 import sys
 

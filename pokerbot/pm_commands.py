@@ -1,4 +1,3 @@
-
 from pokerbot.channel import Channel
 from pokerbot.ErrorHandler import Errors
 from discord.ext import commands

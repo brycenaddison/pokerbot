@@ -1,36 +1,33 @@
-from pokerbot import deck
-f
-
-import deck
-import member
-import messages
-import scoring
-import table
-import player as pl
-from pokerbot.database import Database
+import joker
+from database import Database
+from pokerbot import messages
+from pokerbot.member import Member
+from pokerbot.channel import Channel
+from pokerbot.player import Player
 
 
 
-async def startRound(ctx):
-    table.functions.set(ctx, {
+async def start_round(ctx):
+    table = Channel(ctx)
+    table.set({
         "waitingForPlayers": False,
         "pot": 0,
         "currentBet": 0,
         "phase": 0,
         "cards": [],
-        "deck": deck.new()
+        "deck": joker.new_deck()
     })
 
     position = 0
 
-    for player in table.functions.get(ctx, "players"):
-        table.functions.remove(ctx, "players", player)
+    for player in table.get("players"):
+        table.remove("players", player)
 
         hand = []
 
-        card1, Deck = deck.draw(table.functions.getDeck(ctx))
-        card2, Deck = deck.draw(Deck)
-        table.functions.setDeck(ctx, Deck)
+        card1, deck = joker.draw(table.get_deck())
+        card2, deck = joker.draw(deck)
+        table.set_deck(deck)
         hand.append(card1)
         hand.append(card2)
 

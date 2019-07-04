@@ -3,7 +3,7 @@ import traceback
 from pokerbot import messages
 from pokerbot.channel import Channel
 from discord.ext import commands
-from pokerbot.log import log
+from log import log
 
 
 # custom instances of errors

@@ -1,4 +1,4 @@
-from pokerbot.database import Database
+from database import Database
 
 
 class Member:
